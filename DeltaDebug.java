@@ -28,6 +28,10 @@ class DeltaDebug {
 						  {"0", "0", ""}
 		};
 		
+		// TO DO: Open the file in args[0]
+		
+		// TO DO: Make a new, empty file, test.java
+		
 		// TO DO: Binary search algo as pg. 6 in the paper
 		
 		return;
