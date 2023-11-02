@@ -1,6 +1,6 @@
 public class file1v1 {
 	
-	public int fun(int a, int b, String type) {
+	public static int fun(int a, int b, String type) {
 		if (type.equals("summation")) {
 			return a + b;
 		}
@@ -39,7 +39,7 @@ public class file1v1 {
 	}
 	
 	public static void main(String[] args) {
-		new file1v1.fun(Integer.parseInt(args[0]), Integer.parseInt(args[1]), 
+		fun(Integer.parseInt(args[0]), Integer.parseInt(args[1]), 
 			args[2]);
 	}
 }

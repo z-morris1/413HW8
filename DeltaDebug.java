@@ -1,4 +1,8 @@
 import java.util.ArrayList;
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 // Delta Debugs a given program using the provided diff file
 class DeltaDebug {
@@ -29,11 +33,40 @@ class DeltaDebug {
 		};
 		
 		// TO DO: Open the file in args[0]
+		// TEST: Run args[0]
+		File before = new File("./" + args[0]);
+		try {
+			runProcess("javac " + args[0]);
+			runProcess("java " + args[0].substring(0, args[0].length() - 5) + " 0 0 summation");
+		} catch (Exception e) {
+			
+		}
+		//JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+		//int result = compiler.run(null, null, null, "./" + args[0]);
+		//System.out.println(result);
 		
 		// TO DO: Make a new, empty file, test.java
+		
 		
 		// TO DO: Binary search algo as pg. 6 in the paper
 		
 		return;
 	}
+	
+	private static void printLines(String cmd, InputStream ins) throws Exception {
+        String line = null;
+        BufferedReader in = new BufferedReader(
+            new InputStreamReader(ins));
+        while ((line = in.readLine()) != null) {
+            System.out.println(cmd + " " + line);
+        }
+      }
+	
+	private static void runProcess(String command) throws Exception {
+        Process pro = Runtime.getRuntime().exec(command);
+        printLines(command + " stdout:", pro.getInputStream());
+        printLines(command + " stderr:", pro.getErrorStream());
+        pro.waitFor();
+        System.out.println(command + " exitValue() " + pro.exitValue());
+      }
 }
