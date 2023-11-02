@@ -1,5 +1,8 @@
 To compile the program:
 javac ExampleProgram.java
 
+To generate the diff file:
+diff -U 0 file1v1.java file 1v2.java > diff
+
 To run:
 java ExampleProgram
