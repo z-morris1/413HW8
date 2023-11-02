@@ -1,0 +1,5 @@
+To compile the program:
+javac ExampleProgram.java
+
+To run:
+java ExampleProgram
