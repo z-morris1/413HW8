@@ -32,23 +32,21 @@ class DeltaDebug {
 						  " 0 0 "
 						 };
 		
-		// TO DO: Open the file in args[0]
 		// TEST: Run args[0]
-		File before = new File("./" + args[0]);
 		try {
 			runProcess("javac " + args[0]);
 			runProcess("java " + args[0].substring(0, args[0].length() - 5) + tests[5]);
 		} catch (Exception e) {
 			System.out.println("Error");
 		}
-		//JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		//int result = compiler.run(null, null, null, "./" + args[0]);
-		//System.out.println(result);
 		
-		// TO DO: Make a new, empty file, test.java
+		// Open the before-changes file
+		File before = new File("./" + args[0]);
+		// Make a new, empty file, test.java
+		File test = new File("./test.java");
 		
-		
-		// TO DO: Binary search algo as pg. 6 in the paper
+		// Assumes monotony, but multiple points of failure can be returned
+		ArrayList<diff> results = deltaDebug(before, test, diffs);
 		
 		return;
 	}
@@ -64,5 +62,45 @@ class DeltaDebug {
         }
 		pro.waitFor();
 		return;
+	}
+	
+	private static ArrayList<diff> deltaDebug(File beforeFile, File testFile, ArrayList<diff> diffs) {
+		// Split diffs into the left and right side of the array
+		int length = diffs.size();
+		diff[] leftDiffs = new diff[Math.ceil(length / 2)];
+		diff[] rightDiffs = new diff[length - Math.ceil(length / 2)];
+		// Populate diff halves
+		for (int i = 0, int j = 0; i < length; i++) {
+			if (i == j) {
+				leftDiffs[j] = diffs.get(i);
+			}
+			else { // Moved on to right half
+				rightDiffs[j] = diffs.get(i);
+			}
+			j++;
+			// Shift j back to 0 if the end of leftDiffs is hit
+			if (j >= leftDiffs.length()) {
+				j = 0;
+			}
+		}
+		
+		// Call the recursive function on each half
+		diff[] leftResults = deltaDebugRecursive(beforeFile, testFile, leftDiffs);
+		diff[] rightResults = deltaDebugRecursive(beforeFile, testFile, rightDiffs);
+		
+		// Combine results in the return set
+		diff[] results = diff[leftResults.length() + rightResults.length()];
+		for (int i = 0; i < leftResults.length(); i++) {
+			results[i] = leftResults[i];
+		}
+		for (int i = 0; i < rightResults.length(); i++) {
+			results[i + leftResults.length()] = rightResults[i];
+		}
+		
+		return results;
+	}
+	
+	private static diff[] deltaDebugRecursive(File beforeFile, File testFile, diff[] diffs){
+		
 	}
 }
