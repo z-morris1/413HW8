@@ -61,7 +61,7 @@ class DeltaDebug {
 		File test = new File("./test.java");
 		
 		// Assumes monotony, but multiple points of failure can be returned
-		diff[] results = deltaDebug(before, test, diffs);
+		ChangeObject[] results = deltaDebug(before, test, ChangeObjects);
 		
 		return;
 	}
@@ -79,32 +79,32 @@ class DeltaDebug {
 		return;
 	}
 	
-	private static diff[] deltaDebug(File beforeFile, File testFile, ArrayList<diff> diffs) {
+	private static ChangeObject[] deltaDebug(File beforeFile, File testFile, ArrayList<ChangeObject> objects) {
 		// Split diffs into the left and right side of the array
-		int length = diffs.size();
-		diff[] leftDiffs = new diff[length / 2];
-		diff[] rightDiffs = new diff[length / 2];
+		int length = objects.size();
+		ChangeObject[] leftObjects = new ChangeObject[length / 2];
+		ChangeObject[] rightObjects = new ChangeObject[length / 2];
 		// Populate diff halves
 		for (int i = 0, j = 0; i < length; i++) {
 			if (i == j) {
-				leftDiffs[j] = diffs.get(i);
+				leftObjects[j] = objects.get(i);
 			}
 			else { // Moved on to right half
-				rightDiffs[j] = diffs.get(i);
+				rightObjects[j] = objects.get(i);
 			}
 			j++;
 			// Shift j back to 0 if the end of leftDiffs is hit
-			if (j >= leftDiffs.length) {
+			if (j >= leftObjects.length) {
 				j = 0;
 			}
 		}
 		
 		// Call the recursive function on each half
-		diff[] leftResults = deltaDebugRecursive(beforeFile, testFile, leftDiffs);
-		diff[] rightResults = deltaDebugRecursive(beforeFile, testFile, rightDiffs);
+		ChangeObject[] leftResults = deltaDebugRecursive(beforeFile, testFile, leftObjects);
+		ChangeObject[] rightResults = deltaDebugRecursive(beforeFile, testFile, rightObjects);
 		
 		// Combine results in the return set
-		diff[] results = new diff[leftResults.length + rightResults.length];
+		ChangeObject[] results = new ChangeObject[leftResults.length + rightResults.length];
 		for (int i = 0; i < leftResults.length; i++) {
 			results[i] = leftResults[i];
 		}
@@ -115,8 +115,8 @@ class DeltaDebug {
 		return results;
 	}
 	
-	private static diff[] deltaDebugRecursive(File beforeFile, File testFile, diff[] diffs) {
-		return diffs;
+	private static ChangeObject[] deltaDebugRecursive(File beforeFile, File testFile, ChangeObject[] objects) {
+		return objects;
 	}
 
 	private static ArrayList<ChangeObject> readDiffFile() throws FileNotFoundException {
