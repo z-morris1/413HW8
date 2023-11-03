@@ -2,12 +2,17 @@ import java.util.ArrayList;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Scanner;
 
 // Delta Debugs a given program using the provided diff file
 class DeltaDebug {
+	static int n;
 	public static void main(String[] args){
 		// Check to make sure all 3 args are provided
 		if (args.length != 3) {
@@ -29,6 +34,7 @@ class DeltaDebug {
 		System.out.println("Delta-debugging Project");
 		for(int i = 0; i < ChangeObjects.size(); i++){
 			System.out.println(ChangeObjects.get(i).Location);
+			System.out.println(ChangeObjects.get(i).id);
 		}
 		System.out.println("# of Total Change sets is = " + ChangeObjects.size());
 		
@@ -38,11 +44,22 @@ class DeltaDebug {
 		File test = new File("./test.java");
 		ChangeObject[] results = deltaDebug(before, test, ChangeObjects);
 		
+		// Output final results
+		System.out.print("Changes where bugs occurred: [");
+		for (int i = 0; i < results.length; i++) {
+			System.out.print(results[i].id);
+			if (i != results.length - 1) {
+				System.out.print(" ");
+			}
+		}
+		System.out.println("]");
+		
 		return;
 	}
 	
 	// Assumes monotony, but multiple points of failure can be returned
 	private static ChangeObject[] deltaDebug(File beforeFile, File testFile, ArrayList<ChangeObject> objects) {
+		n = 0;
 		// Split diffs into the left and right side of the array
 		int length = objects.size();
 		ChangeObject[] leftObjects = new ChangeObject[length / 2];
@@ -84,34 +101,45 @@ class DeltaDebug {
 			return new ChangeObject[0];
 		}
 		
+		// Increment case iterator and print case details
+		n++;
+		System.out.print("Step " + n + ":  c_" + n + ":  ");
+		for (int i = 0; i < changeSet.length; i++) {
+			System.out.print(changeSet[i].id + " ");
+		}
+		
 		// First, run the test on the full changeSet. If it passes, return an empty array
 		testFile = applyChangeSet(beforeFile, testFile, changeSet);
 		boolean pass = runTests(testFile);
 		if (pass) {
+			System.out.print("PASS\n");
 			return new ChangeObject[0];
 		}
 		else if (changeSet.length == 1) {
 			// We've reached a single failing change, return this changeSet
+			System.out.print("FAIL\n");
 			return changeSet;
 		}
 		else {
+			System.out.print("FAIL\n");
 			// changeSet fails but is still size > 1, split again and make recursive call
 			// Split diffs into the left and right side of the array
 			int length = changeSet.length;
 			ChangeObject[] leftObjects = new ChangeObject[length / 2];
-			ChangeObject[] rightObjects = new ChangeObject[length / 2];
+			ChangeObject[] rightObjects = new ChangeObject[length / 2 + length % 2];
 			// Populate diff halves
-			for (int i = 0, j = 0; i < length; i++) {
+			for (int i = 0, j = 0; i < length; i++, j++) {
+				// Shift j back to 0 if the end of leftDiffs is hit
+				if (i == j && j >= leftObjects.length) {
+					j = 0;
+				}
+				
+				// Assign each change to either left or right
 				if (i == j) {
 					leftObjects[j] = changeSet[i];
 				}
 				else { // Moved on to right half
 					rightObjects[j] = changeSet[i];
-				}
-				j++;
-				// Shift j back to 0 if the end of leftDiffs is hit
-				if (j >= leftObjects.length) {
-					j = 0;
 				}
 			}
 			
@@ -135,7 +163,43 @@ class DeltaDebug {
 	// Takes a before file, truncates the change file, and writes the before file with the changeSet 
 	// applied to the change file. Returns the written change file
 	private static File applyChangeSet(File before, File change, ChangeObject[] changeSet) {
-		//TO DO
+		// Read before file, truncate/write change file
+		BufferedReader reader;
+		BufferedWriter writer;
+		int curChangeNum = 0;
+		ChangeObject curChange = changeSet[curChangeNum];
+		int curLine = 0;
+		int curLocation = Integer.parseInt(curChange.Location.split("\\s*[ ,]+")[1].substring(1));
+
+		try {
+			reader = new BufferedReader(new FileReader("./" + before.getName()));
+			writer = new BufferedWriter(new FileWriter("./" + change.getName()));
+			String line = reader.readLine();
+			
+			while (line != null) {
+				curLine++;
+				
+				if (curLine == curLocation) {
+					// We've hit the next change location, make changes to file
+					System.out.println("Need to remove: \n" + curChange.Remove);
+					System.out.println("Need to add: \n" + curChange.Add);
+					
+					curChangeNum++;
+					curChange = changeSet[curChangeNum];
+					curLocation = Integer.parseInt(curChange.Location.split("\\s*[ ,]+")[1].substring(1));
+				}
+				// read next line
+				line = reader.readLine();
+			}
+
+			reader.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		// TESTING. Stop program after running this function the first time.
+		// Changes 1-5 should be applied in test.java.
+		System.exit(0);
 		return change;
 	}
 	
@@ -199,7 +263,7 @@ class DeltaDebug {
 			checker.close();
 
 			if (first.equals("@@")) {
-				ChangeObject last = new ChangeObject(Location, AddString, RemoveString);
+				ChangeObject last = new ChangeObject(Stuff.size(), Location, AddString, RemoveString);
 				Stuff.add(last);
 
 				Location = "";
@@ -231,7 +295,7 @@ class DeltaDebug {
 			}
 		}
 
-		ChangeObject last = new ChangeObject (Location, AddString, RemoveString);
+		ChangeObject last = new ChangeObject (Stuff.size(), Location, AddString, RemoveString);
 		Stuff.add(last);
 
 		Stuff.remove(Stuff.get(0));
