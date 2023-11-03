@@ -1,8 +1,10 @@
 import java.util.ArrayList;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Scanner;
 
 // Delta Debugs a given program using the provided diff file
 class DeltaDebug {
@@ -10,7 +12,7 @@ class DeltaDebug {
 		// Check to make sure all 3 args are provided
 		if (args.length != 3) {
 			System.out.println("Usage: java DeltaDebug before.java after.java diff_file");
-			System.exit(0);
+			return;
 		}
 		
 		// This isn't a program writing class, so at this point we're just going to assume
@@ -19,6 +21,19 @@ class DeltaDebug {
 		ArrayList<diff> diffs = new ArrayList<diff>();
 		
 		// TO DO: Open and parse the diff file. Print out change sets as in the example
+		ArrayList<ChangeObject> ChangeObjects = new ArrayList<ChangeObject>();
+		try {
+			ChangeObjects = readDiffFile();
+		} catch (FileNotFoundException e) {
+			System.out.println("Diff file not found!");
+			return;
+		}
+
+		System.out.println("Delta-debugging Project");
+		for(int i = 0; i < ChangeObjects.size(); i++){
+			System.out.println(ChangeObjects.get(i).Location);
+		}
+		System.out.println("# of Total Change sets is = " + ChangeObjects.size());
 		
 		// This isn't a coverage generation project, so we'll hard code a test set of inputs here
 		String[] tests = {" 0 0 summation",
@@ -46,7 +61,7 @@ class DeltaDebug {
 		File test = new File("./test.java");
 		
 		// Assumes monotony, but multiple points of failure can be returned
-		ArrayList<diff> results = deltaDebug(before, test, diffs);
+		diff[] results = deltaDebug(before, test, diffs);
 		
 		return;
 	}
@@ -64,13 +79,13 @@ class DeltaDebug {
 		return;
 	}
 	
-	private static ArrayList<diff> deltaDebug(File beforeFile, File testFile, ArrayList<diff> diffs) {
+	private static diff[] deltaDebug(File beforeFile, File testFile, ArrayList<diff> diffs) {
 		// Split diffs into the left and right side of the array
 		int length = diffs.size();
-		diff[] leftDiffs = new diff[Math.ceil(length / 2)];
-		diff[] rightDiffs = new diff[length - Math.ceil(length / 2)];
+		diff[] leftDiffs = new diff[length / 2];
+		diff[] rightDiffs = new diff[length / 2];
 		// Populate diff halves
-		for (int i = 0, int j = 0; i < length; i++) {
+		for (int i = 0, j = 0; i < length; i++) {
 			if (i == j) {
 				leftDiffs[j] = diffs.get(i);
 			}
@@ -79,7 +94,7 @@ class DeltaDebug {
 			}
 			j++;
 			// Shift j back to 0 if the end of leftDiffs is hit
-			if (j >= leftDiffs.length()) {
+			if (j >= leftDiffs.length) {
 				j = 0;
 			}
 		}
@@ -89,18 +104,81 @@ class DeltaDebug {
 		diff[] rightResults = deltaDebugRecursive(beforeFile, testFile, rightDiffs);
 		
 		// Combine results in the return set
-		diff[] results = diff[leftResults.length() + rightResults.length()];
-		for (int i = 0; i < leftResults.length(); i++) {
+		diff[] results = new diff[leftResults.length + rightResults.length];
+		for (int i = 0; i < leftResults.length; i++) {
 			results[i] = leftResults[i];
 		}
-		for (int i = 0; i < rightResults.length(); i++) {
-			results[i + leftResults.length()] = rightResults[i];
+		for (int i = 0; i < rightResults.length; i++) {
+			results[i + leftResults.length] = rightResults[i];
 		}
 		
 		return results;
 	}
 	
-	private static diff[] deltaDebugRecursive(File beforeFile, File testFile, diff[] diffs){
+	private static diff[] deltaDebugRecursive(File beforeFile, File testFile, diff[] diffs) {
+		return diffs;
+	}
+
+	private static ArrayList<ChangeObject> readDiffFile() throws FileNotFoundException {
+		ArrayList<ChangeObject> Stuff = new ArrayList<ChangeObject>();
+
+		File file = new File("diff");
+		Scanner scanner = new Scanner(file);
+
+		String Location = "";
+		String AddString = "";
+		String RemoveString = "";
 		
+		String saved = "";
+
+		saved = scanner.nextLine();
+		saved = scanner.nextLine();
+
+		while(scanner.hasNextLine()) {
+			saved = scanner.nextLine();
+			Scanner checker = new Scanner(saved);
+			String first = checker.next();
+			checker.close();
+
+			if (first.equals("@@")) {
+				ChangeObject last = new ChangeObject(Location, AddString, RemoveString);
+				Stuff.add(last);
+
+				Location = "";
+				AddString = "";
+				RemoveString = "";
+				
+				Location = saved;
+			}
+ 
+			else if (first.equals("-")) {
+				if(RemoveString.equals("")) {
+					RemoveString = saved.substring(1, saved.length()-1);
+				}
+				else {
+					String result = "\n" + saved.substring(1, saved.length());
+					RemoveString += result;
+				}
+				
+			}
+ 
+			else if (first.equals("+")) {
+				if(AddString.equals("")) {
+					AddString = saved.substring(1, saved.length()-1);
+				}
+				else {
+					String result = "\n" + saved.substring(1, saved.length());
+					AddString += result;
+				}
+			}
+		}
+
+		ChangeObject last = new ChangeObject (Location, AddString, RemoveString);
+		Stuff.add(last);
+
+		Stuff.remove(Stuff.get(0));
+		scanner.close();
+		
+		return Stuff;
 	}
 }
