@@ -157,7 +157,10 @@ class DeltaDebug {
 		// TO DO: Run all tests instead of just the one
 		try {
 			runProcess("javac " + fileName);
-			runProcess("java " + fileName.substring(0, fileName.length() - 5) + tests[5]);
+			for(int i = 0; i <= tests.length; i++) {
+				runProcess("java " + fileName.substring(0, fileName.length() - i) + tests[i]);
+			}
+			
 		} catch (Exception e) {
 			return false;
 		}
