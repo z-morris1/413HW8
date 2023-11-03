@@ -185,8 +185,13 @@ class DeltaDebug {
 					System.out.println("Need to add: \n" + curChange.Add);
 					
 					curChangeNum++;
-					curChange = changeSet[curChangeNum];
-					curLocation = Integer.parseInt(curChange.Location.split("\\s*[ ,]+")[1].substring(1));
+					if (curChangeNum < changeSet.length) {
+						curChange = changeSet[curChangeNum];
+						curLocation = Integer.parseInt(curChange.Location.split("\\s*[ ,]+")[1].substring(1));
+					}
+					else {
+						curLocation = -1;
+					}
 				}
 				// read next line
 				line = reader.readLine();
@@ -199,7 +204,7 @@ class DeltaDebug {
 		
 		// TESTING. Stop program after running this function the first time.
 		// Changes 1-5 should be applied in test.java.
-		System.exit(0);
+		//System.exit(0);
 		return change;
 	}
 	
@@ -221,7 +226,10 @@ class DeltaDebug {
 		// TO DO: Run all tests instead of just the one
 		try {
 			runProcess("javac " + fileName);
-			runProcess("java " + fileName.substring(0, fileName.length() - 5) + tests[5]);
+			for(int i = 0; i <= tests.length; i++) {
+				runProcess("java " + fileName.substring(0, fileName.length() - i) + tests[i]);
+			}
+			
 		} catch (Exception e) {
 			return false;
 		}
