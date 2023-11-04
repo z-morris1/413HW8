@@ -1,21 +1,17 @@
 public class test {
 	
 	public static int fun(int a, int b, String type) {
+		int x = 0;
 		if (type.equals("summation")) {
 			return a + b;
 		}
-		if (type.equals("multiplication")) {
-			return a * b;
-		}
 		
-
-		int ax = 0;
+		int y;
 		if (type.equals("minus")) {
-
-			a++;
-			a--;
+			
 			return a - b;
 		}
+		
 		if (type.equals("modulous")) {
 			a--;
 			a++;
@@ -27,9 +23,13 @@ public class test {
 		if (type.equals("subsquare")) {
 			return (a * a - b * b);
 		}
-		int v = 0;
 		
-		return 0;
+
+		if (type.equals("addsubsquare")) {
+			return (((a + b) * (a * b)) - ((a - b) * (a - b)));
+		}
+		
+		return 1;
 	}
 	
 	public static void main(String[] args) {

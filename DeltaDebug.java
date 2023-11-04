@@ -111,7 +111,6 @@ class DeltaDebug {
 		testFile = applyChangeSet(beforeFile, testFile, changeSet);
 		boolean pass = runTests(testFile);
 		
-		System.exit(0);
 		if (pass) {
 			System.out.print("PASS\n");
 			return new ChangeObject[0];
@@ -241,21 +240,20 @@ class DeltaDebug {
 		String[] tests = {" 0 0 summation",
 						  " 0 0 multiplication", 
 						  " 0 0 minus", 
-						  " 0 0 modulous", 
+						  " 0 1 modulous", 
 						  " 0 0 addsquare", 
 						  " 0 0 division", 
 						  " 0 0 subsquare", 
 						  " 0 0 addsubsquare", 
-						  " 0 0 "
+						  " 0 0 garbage"
 						 };
 		
 		String fileName = f.getName();
-		System.out.println(fileName);
 		
 		// Run all tests
 		try {
 			runProcess("javac " + fileName);
-			for(int i = 0; i <= tests.length; i++) {
+			for(int i = 0; i < tests.length; i++) {
 				// Trim off the .java
 				runProcess("java " + fileName.substring(0, fileName.length() - 5) + tests[i]);
 			}
@@ -272,10 +270,10 @@ class DeltaDebug {
         BufferedReader in = new BufferedReader(new InputStreamReader(pro.getErrorStream()));
         while ((line = in.readLine()) != null) {
 			// If anything is printed to the error stream, that's a failure. Throw an exception
-			System.out.println("ERROR: " + line);
             throw new Exception();
         }
 		pro.waitFor();
+		in.close();
 		return;
 	}
 

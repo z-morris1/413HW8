@@ -1,7 +1,7 @@
 To compile the program (won't need to add dependency classes since they're in the same directory):
 javac DeltaDebug.java
 
-To generate the diff file:
+To generate the diff file (shouldn't need to run this as the diff is already made here):
 diff -U 0 file1v1.java file1v2.java > diff
 
 To run:
