@@ -111,6 +111,8 @@ class DeltaDebug {
 		// First, run the test on the full changeSet. If it passes, return an empty array
 		testFile = applyChangeSet(beforeFile, testFile, changeSet);
 		boolean pass = runTests(testFile);
+		
+		System.exit(0);
 		if (pass) {
 			System.out.print("PASS\n");
 			return new ChangeObject[0];
@@ -181,30 +183,56 @@ class DeltaDebug {
 				
 				if (curLine == curLocation) {
 					// We've hit the next change location, make changes to file
-					System.out.println("Need to remove: \n" + curChange.Remove);
-					System.out.println("Need to add: \n" + curChange.Add);
 					
+					// Remove comes first
+					if (curChange.Remove.length() > 0) {
+						// How many lines to remove?
+						int linesToRemove = curChange.Remove.split("//R").length;
+						for (int i = 1; i < linesToRemove; i++) {
+							// Skip more lines if more than 1 line is set for removal
+							reader.readLine();
+						}
+					}
+					
+					// Then Add
+					if (curChange.Add.length() > 0) {
+						// If ONLY adding, write out the current line as well
+						if (curChange.Remove.length() == 0) {
+							writer.write(line);
+						}
+						writer.write("\n");
+						writer.write(curChange.Add + "\n");
+					}
+					
+					// Change applied, iterate to the next change
 					curChangeNum++;
 					if (curChangeNum < changeSet.length) {
 						curChange = changeSet[curChangeNum];
 						curLocation = Integer.parseInt(curChange.Location.split("\\s*[ ,]+")[1].substring(1));
 					}
 					else {
+						// Iterate to something so we can write out the rest of the parent file
 						curLocation = -1;
 					}
+				}
+				else {
+					// No change applicable, go ahead and just write the line
+					if (curLine == 1) {
+						String className = before.getName().substring(0, before.getName().length() - 5);
+						line = line.replace(className, "test");
+					}
+					writer.write(line + "\n");
 				}
 				// read next line
 				line = reader.readLine();
 			}
 
 			reader.close();
+			writer.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		// TESTING. Stop program after running this function the first time.
-		// Changes 1-5 should be applied in test.java.
-		//System.exit(0);
 		return change;
 	}
 	
@@ -223,11 +251,14 @@ class DeltaDebug {
 						 };
 		
 		String fileName = f.getName();
-		// TO DO: Run all tests instead of just the one
+		System.out.println(fileName);
+		
+		// Run all tests
 		try {
 			runProcess("javac " + fileName);
 			for(int i = 0; i <= tests.length; i++) {
-				runProcess("java " + fileName.substring(0, fileName.length() - i) + tests[i]);
+				// Trim off the .java
+				runProcess("java " + fileName.substring(0, fileName.length() - 5) + tests[i]);
 			}
 			
 		} catch (Exception e) {
@@ -242,7 +273,7 @@ class DeltaDebug {
         BufferedReader in = new BufferedReader(new InputStreamReader(pro.getErrorStream()));
         while ((line = in.readLine()) != null) {
 			// If anything is printed to the error stream, that's a failure. Throw an exception
-			//System.out.println(line);
+			System.out.println("ERROR: " + line);
             throw new Exception();
         }
 		pro.waitFor();
@@ -283,7 +314,7 @@ class DeltaDebug {
  
 			else if (first.equals("-")) {
 				if(RemoveString.equals("")) {
-					RemoveString = saved.substring(1, saved.length()-1);
+					RemoveString = saved.substring(1, saved.length());
 				}
 				else {
 					String result = "\n" + saved.substring(1, saved.length());
@@ -294,7 +325,7 @@ class DeltaDebug {
  
 			else if (first.equals("+")) {
 				if(AddString.equals("")) {
-					AddString = saved.substring(1, saved.length()-1);
+					AddString = saved.substring(1, saved.length());
 				}
 				else {
 					String result = "\n" + saved.substring(1, saved.length());
