@@ -34,7 +34,6 @@ class DeltaDebug {
 		System.out.println("Delta-debugging Project");
 		for(int i = 0; i < ChangeObjects.size(); i++){
 			System.out.println(ChangeObjects.get(i).Location);
-			System.out.println(ChangeObjects.get(i).id);
 		}
 		System.out.println("# of Total Change sets is = " + ChangeObjects.size());
 		
